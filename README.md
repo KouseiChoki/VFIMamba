@@ -44,7 +44,7 @@ You can choose what you need by changing the parameter ```model```.
 ### Hugging Face Demo
 For Hugging Face demo, please refer to [the code here](https://github.com/MCG-NJU/VFIMamba/blob/main/hf_demo_2x.py).
 ```bash
-python hf_demo_2x.py --model **model[VFIMamba_S/VFIMamba]**      # for 2x interpolation
+python hf_demo_2x.py --model VFIMamba     # for 2x interpolation
 ```
 
 ### Manually Load

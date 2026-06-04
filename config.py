@@ -4,7 +4,7 @@ import torch.nn as nn
 from model import mamba_extractor
 from model import mamba_estimation
 
-LOG = 'VFIMamba_S'
+LOG = 'VFIMamba'
 LOCAL = 2
 
 '''==========Model config=========='''
@@ -39,7 +39,7 @@ MODEL_CONFIG = {
     'LOGNAME': LOG,
     'MODEL_TYPE': (mamba_extractor, mamba_estimation),
     'MODEL_ARCH': init_model_config(
-        F = 16,
+        F = 32,
         depth = [2, 2, 2, 3, 3],
         M = False
     )

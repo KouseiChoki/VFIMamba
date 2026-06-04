@@ -136,6 +136,18 @@ class MultiScaleFlow(nn.Module):
 
         return flow, mask
 
+    # def coraseWarp_and_Refine(self, imgs, af, flow, mask):
+    #     img0, img1 = imgs[:, :3], imgs[:, 3:6]
+    #     warped_img0 = warp(img0, flow[:, :2])
+    #     warped_img1 = warp(img1, flow[:, 2:4])
+    #     c0, c1 = self.warp_features(af, flow)
+    #     tmp = self.unet(img0, img1, warped_img0, warped_img1, mask, flow, c0, c1)
+    #     res = tmp[:, :3] * 2 - 1
+    #     mask_ = torch.sigmoid(mask)
+    #     merged = warped_img0 * mask_ + warped_img1 * (1 - mask_)
+    #     pred = torch.clamp(merged + res, 0, 1)
+    #     return pred
+
     def coraseWarp_and_Refine(self, imgs, af, flow, mask):
         img0, img1 = imgs[:, :3], imgs[:, 3:6]
         warped_img0 = warp(img0, flow[:, :2])
@@ -146,14 +158,13 @@ class MultiScaleFlow(nn.Module):
         mask_ = torch.sigmoid(mask)
         merged = warped_img0 * mask_ + warped_img1 * (1 - mask_)
         pred = torch.clamp(merged + res, 0, 1)
-        return pred
+        return pred,warped_img0,warped_img1,mask_
 
 
     def forward(self, x, local=False, timestep=0.5, scale=0):
         if scale > 0: 
             x_o = x
             x = F.interpolate(x, scale_factor=scale, mode='bilinear', align_corners=False)
-
         img0, img1 = x[:, :3], x[:, 3:6]
         B = x.size(0)
         flow_list = []
@@ -213,4 +224,4 @@ class MultiScaleFlow(nn.Module):
         tmp = self.unet(img0, img1, warped_img0, warped_img1, mask, flow, c0, c1)
         res = tmp[:, :3] * 2 - 1
         pred = torch.clamp(merged[-1] + res, 0, 1)
-        return flow_list, mask_list, merged, pred
+        return flow_list, mask_list, merged,res,warped_img0,warped_img1,pred
