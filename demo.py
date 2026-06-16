@@ -15,7 +15,12 @@ from file_utils import read, write
 from collections import defaultdict
 import glob, re
 # ── 设备检测 ─────────────────────────────────────────────────────────
-
+if torch.cuda.is_available():
+    device = torch.device('cuda')
+elif torch.backends.mps.is_available():
+    device = torch.device('mps')
+else:
+    device = torch.device('cpu')
 parser = argparse.ArgumentParser()
 parser.add_argument('--model',       default='VFIMamba', type=str)
 parser.add_argument('--ckpt',        default='/home/zhenying/qhong/repo/VFIMamba/ckpt/0604/VFIMamba_5.pkl', type=str)
@@ -47,7 +52,7 @@ if args.model == 'VFIMamba':
 model = Model(-1)
 model.load_model(args.ckpt)
 model.eval()
-model.device()
+model.device(device)
 
 # ── resize 上限 ───────────────────────────────────────────────────────
 MAX_W, MAX_H = 1920, 1080
@@ -151,8 +156,8 @@ for index in tqdm(range(len(pairs))):
     I0 = to_float(resize_if_needed(read(src0, type='image')))
     I2 = to_float(resize_if_needed(read(src1, type='image')))
 
-    I0_ = torch.tensor(I0.transpose(2, 0, 1)).cuda().unsqueeze(0)
-    I2_ = torch.tensor(I2.transpose(2, 0, 1)).cuda().unsqueeze(0)
+    I0_ = torch.tensor(I0.transpose(2, 0, 1)).to(device).unsqueeze(0)
+    I2_ = torch.tensor(I2.transpose(2, 0, 1)).to(device).unsqueeze(0)
 
     padder = InputPadder(I0_.shape, divisor=32)
     I0_, I2_ = padder.pad(I0_, I2_)
