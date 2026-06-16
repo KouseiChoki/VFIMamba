@@ -71,3 +71,43 @@ class Unet(nn.Module):
         x = self.up3(torch.cat((x, s0), 1)) 
         x = self.conv(x)
         return torch.sigmoid(x)
+
+class UnetWithAttention(nn.Module):
+    def __init__(self, c, M=False, out=3):
+        super().__init__()
+        # 在 bottleneck 加入自注意力
+        self.down0 = Conv2(17 + c, 2 * c)
+        self.down1 = Conv2(4 * c, 4 * c)
+        self.down2 = Conv2(8 * c, 8 * c)
+        self.down3 = Conv2(16 * c, 16 * c)
+        
+        # Bottleneck 注意力模块
+        self.bottleneck_attn = nn.MultiheadAttention(
+            embed_dim=32 * c, num_heads=8, batch_first=True
+        )
+        
+        self.up0 = deconv(32 * c if not M else 16 * c, 8 * c)
+        self.up1 = deconv(16 * c, 4 * c)
+        self.up2 = deconv(8 * c, 2 * c)
+        self.up3 = deconv(4 * c, c)
+        self.conv = nn.Conv2d(c, out, 3, 1, 1)
+        self.M = M
+
+    def forward(self, img0, img1, warped_img0, warped_img1, mask, flow, c0, c1):
+        s0 = self.down0(torch.cat((img0, img1, warped_img0, warped_img1, mask, flow, c0[0], c1[0]), 1))
+        s1 = self.down1(torch.cat((s0, c0[1], c1[1]), 1))
+        s2 = self.down2(torch.cat((s1, c0[2], c1[2]), 1))
+        s3 = self.down3(torch.cat((s2, c0[3], c1[3]), 1))
+        
+        # Bottleneck attention
+        bottleneck = torch.cat((s3, c0[4], c1[4]), 1) if not self.M else s3
+        B, C, H, W = bottleneck.shape
+        feat = bottleneck.flatten(2).permute(0, 2, 1)   # (B, H*W, C)
+        feat, _ = self.bottleneck_attn(feat, feat, feat)
+        bottleneck = feat.permute(0, 2, 1).view(B, C, H, W)
+        
+        x = self.up0(bottleneck)
+        x = self.up1(torch.cat((x, s2), 1))
+        x = self.up2(torch.cat((x, s1), 1))
+        x = self.up3(torch.cat((x, s0), 1))
+        return torch.sigmoid(self.conv(x))

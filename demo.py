@@ -14,11 +14,11 @@ from benchmark.utils.padder import InputPadder
 from file_utils import read, write
 from collections import defaultdict
 import glob, re
-
+# ── 设备检测 ─────────────────────────────────────────────────────────
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model',       default='VFIMamba', type=str)
-parser.add_argument('--ckpt',        default='/home/zhenying/qhong/repo/VFIMamba/ckpt/VFIMamba_5.pkl', type=str)
+parser.add_argument('--ckpt',        default='/home/zhenying/qhong/repo/VFIMamba/ckpt/0604/VFIMamba_5.pkl', type=str)
 parser.add_argument('--root', '--path', required=True, type=str)
 parser.add_argument('--output',      default='/home/zhenying/qhong/result/VfiMamba_result', type=str)
 parser.add_argument('--scale',       default=0, type=float)
