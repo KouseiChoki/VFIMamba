@@ -16,7 +16,7 @@ from collections import defaultdict
 import glob, re
 parser = argparse.ArgumentParser()
 parser.add_argument('--model',       default='VFIMamba', type=str)
-parser.add_argument('--ckpt',        default='/home/zhenying/qhong/repo/VFIMamba/ckpt/0604/VFIMamba_5.pkl', type=str)
+parser.add_argument('--ckpt',        default='/home/zhenying/qhong/repo/VFIMamba/ckpt/VFIMamba_0.pkl', type=str)
 parser.add_argument('--root', '--path', required=True, type=str)
 parser.add_argument('--output',      default='/home/zhenying/qhong/result/VfiMamba_result', type=str)
 parser.add_argument('--scale',       default=0, type=float)
@@ -29,6 +29,7 @@ parser.add_argument('--video_ext',   default='mp4', type=str,
                     choices=['mp4', 'avi'],
                     help='视频容器格式（默认 mp4）')
 parser.add_argument('--dump_data',action='store_true') 
+parser.add_argument('--old_version',action='store_true') 
 
 args = parser.parse_args()
 assert args.model in ['VFIMamba_S', 'VFIMamba'], 'Model not exists!'
@@ -36,16 +37,17 @@ assert args.model in ['VFIMamba_S', 'VFIMamba'], 'Model not exists!'
 '''==========Model setting=========='''
 TTA = False
 if args.model == 'VFIMamba':
-    TTA = True
+    TTA = False
     cfg.MODEL_CONFIG['LOGNAME'] = 'VFIMamba'
     cfg.MODEL_CONFIG['MODEL_ARCH'] = cfg.init_model_config(
         F=32,
         depth=[2, 2, 2, 3, 3]
     )
+cfg.MODEL_CONFIG['MODEL_ARCH'][1]['version'] = 1 if args.old_version else 2
 model = Model(-1)
 model.load_model(args.ckpt)
 model.eval()
-model.device(device)
+model.device()
 
 # ── resize 上限 ───────────────────────────────────────────────────────
 MAX_W, MAX_H = 1920, 1080

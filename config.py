@@ -8,7 +8,7 @@ LOG = 'VFIMamba'
 LOCAL = 2
 
 '''==========Model config=========='''
-def init_model_config(F=32, W=7, depth=[2, 2, 2, 4, 4], M=False):
+def init_model_config(F=32, W=7, depth=[2, 2, 2, 4, 4], M=False,version=1):
     '''This function should not be modified'''
     return { 
         'embed_dims':[(2**i)*F for i in range(len(depth))],
@@ -19,7 +19,8 @@ def init_model_config(F=32, W=7, depth=[2, 2, 2, 4, 4], M=False):
         'norm_layer':partial(nn.LayerNorm, eps=1e-6), 
         'depths':depth,
         'window_sizes':[W for i in range(len(depth)-3)],
-        'conv_stages':3
+        'conv_stages':3,
+        'version':version
     }, {
         'embed_dims':[(2**i)*F for i in range(len(depth))],
         'motion_dims':[0, 0, 0, 8*F//depth[-2], 16*F//depth[-1]],
@@ -41,6 +42,7 @@ MODEL_CONFIG = {
     'MODEL_ARCH': init_model_config(
         F = 32,
         depth = [2, 2, 2, 3, 3],
-        M = False
+        M = False,
+        version = 1
     )
 }

@@ -88,8 +88,10 @@ class MultiScaleFlow(nn.Module):
                             7 if i==0 else 18) 
                             for i in range(self.flow_num_stage)])
         self.local_block = nn.ModuleList([IFBlock(17, c=kargs['local_hidden_dims'], scale=2-i) for i in range(self.local_num)])
-        # self.unet = Unet(kargs['c'] * 2, kargs['M'])
-        self.unet = UnetWithAttention(kargs['c'] * 2, kargs['M'])
+        if kargs['version'] == 1:
+            self.unet = Unet(kargs['c'] * 2, kargs['M'])
+        else:
+            self.unet = UnetWithAttention(kargs['c'] * 2, kargs['M'])
 
     def warp_features(self, xs, flow):
         y0 = []
